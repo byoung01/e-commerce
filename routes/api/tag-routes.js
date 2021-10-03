@@ -3,23 +3,21 @@ const { Tag, Product, ProductTag } = require("../../models");
 
 // The `/api/tags` endpoint
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const tagData = await Tag.findAll({
-      include: [{ model: ProductTag }],
+    const pTagData = await Tag.findAll({
+      include: [{ model: Product }],
     });
-    res.status(200).json(tagData);
+    res.status(200).json(pTagData);
   } catch (err) {
     res.status(500).json(err);
   }
-  // find all tags
-  // be sure to include its associated Product data
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const tagData = await Tag.findByPk(req.params.id, {
-      include: [{ model: ProductTag }],
+      include: [{ model: Product }],
     });
 
     if (!tagData) {
@@ -31,20 +29,45 @@ router.get("/:id", (req, res) => {
   } catch (err) {
     res.status(500).json(err);
   }
-  // find a single tag by its `id`
-  // be sure to include its associated Product data
 });
 
-router.post("/", (req, res) => {
-  // create a new tag
+router.post("/", async (req, res) => {
+  try {
+    const newTag = await Tag.create({
+      tag_name: req.body.tag_name,
+    });
+    res.status(200).json(newTag);
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
+  let updateTag = await Tag.update(req.body, {
+    where: {
+      id: req.params.id,
+    },
+  });
+  res.json(updateTag);
+
+  //tag_name
   // update a tag's name by its `id` value
 });
 
-router.delete("/:id", (req, res) => {
-  // delete on tag by its `id` value
+router.delete("/:id", async (req, res) => {
+  try {
+    const tag = await Tag.destroy({
+      where: { id: req.params.id },
+    });
+    if (!tag) {
+      res.status(404).json({ message: "No tag with this id!" });
+      return;
+    }
+    console.log("id deleted");
+    res.status(200).json(tag);
+  } catch (err) {
+    res.status(500).json(err);
+    // delete on tag by its `id` value
+  }
 });
-
 module.exports = router;
